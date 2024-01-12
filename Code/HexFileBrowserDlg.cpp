@@ -20,12 +20,12 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// 对话框数据
+	// 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 // 实现
@@ -180,13 +180,13 @@ VOID CHexFileBrowserDlg::InitFileListTitle()
 	m_FileList.InsertColumn(7, "6", LVCFMT_CENTER, 30);
 	m_FileList.InsertColumn(8, "7", LVCFMT_CENTER, 30);
 	m_FileList.InsertColumn(9, "8", LVCFMT_CENTER, 30);
-	m_FileList.InsertColumn(10,"9",LVCFMT_CENTER, 30);
-	m_FileList.InsertColumn(11,"A",LVCFMT_CENTER, 30);
-	m_FileList.InsertColumn(12,"B",LVCFMT_CENTER, 30);
-	m_FileList.InsertColumn(13,"C",LVCFMT_CENTER, 30);
-	m_FileList.InsertColumn(14,"D",LVCFMT_CENTER, 30);
-	m_FileList.InsertColumn(15,"E",LVCFMT_CENTER, 30);
-	m_FileList.InsertColumn(16,"F",LVCFMT_CENTER, 30);
+	m_FileList.InsertColumn(10, "9", LVCFMT_CENTER, 30);
+	m_FileList.InsertColumn(11, "A", LVCFMT_CENTER, 30);
+	m_FileList.InsertColumn(12, "B", LVCFMT_CENTER, 30);
+	m_FileList.InsertColumn(13, "C", LVCFMT_CENTER, 30);
+	m_FileList.InsertColumn(14, "D", LVCFMT_CENTER, 30);
+	m_FileList.InsertColumn(15, "E", LVCFMT_CENTER, 30);
+	m_FileList.InsertColumn(16, "F", LVCFMT_CENTER, 30);
 	// 
 	m_FileList.InsertColumn(17, "|", 0, 15);
 	// ASCII区设置
@@ -239,7 +239,7 @@ void CHexFileBrowserDlg::OnDropFiles(HDROP hDropInfo)
 	{
 		return;
 	}
-	uiRes = DragQueryFile(hDropInfo, uiRes-1, szPath, MAX_PATH); // 获取拖拽的文件的路径与名字
+	uiRes = DragQueryFile(hDropInfo, uiRes - 1, szPath, MAX_PATH); // 获取拖拽的文件的路径与名字
 	// 如果确实拖拽进来了那么将其添加到树控件上
 	if (szPath != NULL)
 	{
@@ -257,9 +257,12 @@ VOID CHexFileBrowserDlg::InitFileListData(TCHAR* szPath)
 	{
 		delete m_szBuffer;
 	}
+	// 加载文件路径到对话框标题栏,用于确认当前打开的是哪个文件
+	m_csCaption.Format("Hex File Browser [Current File: %s]", szPath);
+	SetWindowText(m_csCaption);
+
 	// 清空列表区准备显示文件
 	m_FileList.DeleteAllItems();
-	InitFileListTitle();// 重新生成一遍
 	// 开始读取文件到缓冲区
 	// 使用CFile类创建对象
 	CFile objFile;
@@ -268,36 +271,48 @@ VOID CHexFileBrowserDlg::InitFileListData(TCHAR* szPath)
 	// 获取文件长度
 	ULONGLONG ullLength = objFile.GetLength();
 	// 根据文件长度申请内存空间并读取文件内容到指定缓冲区
-	m_szBuffer = new TCHAR[ullLength + 1];
-	memset(m_szBuffer, 0, ullLength + 1);
+	m_szBuffer = new TCHAR[ullLength];
+	memset(m_szBuffer, 0, ullLength);
 	// 实际读取长度
 	UINT uiReadSize = 0;
 	uiReadSize = objFile.Read(m_szBuffer, ullLength);
-	
+
 	// 以16进制形式读取显示文件到列表处(每16字节就进位)
-	DWORD dwLines = uiReadSize / 16 + 1; // 获取行数
-	DWORD dwLineCount = 0; // 行计数
-	DWORD dwIndex = 0; // 行计数
-	CString csValue; // 逐行读取的缓冲区
+	DWORD dwLines = uiReadSize / 16 + 1; // 获取总行数
+	DWORD dwLineCount = 0;							 // 行计数
+	DWORD dwIndex = 0;                   // 行的索引
+	CString csValue;                     // 逐行读取的缓冲区
 
 	m_ProgressLoad.SetRange32(0, dwLines); // 以行数来计算进度
 	// 开始读取并显示到控件上
 	for (size_t i = 0; i < dwLines; i++) // 外层循环以行计算
 	{
-		csValue.Format("%08X", dwLineCount); // 首先将地址逐行格式化存到csValue中
-		m_FileList.InsertItem(dwIndex, csValue); // 设置到当前行的第0列上
+		// 首先将每行的偏移地址逐行格式化存到csValue中,再设置到当前行的第0列上
+		csValue.Format("%08Xh", dwLineCount);
+		m_FileList.InsertItem(dwIndex, csValue);
+		size_t j = 0; // 列
 		// 开始第一遍读取(显示16进制码)
-		for (size_t j = 0; j < 16; j++) // 外层循环以列计算
+		for (j = 0; j < 16; j++) // 外层循环以列计算
 		{
-			UCHAR ucCode = m_szBuffer[i + j]; // 逐字节读入到ucCode
+			// 如果读取到最后一个字节那么停止读取,退出循环
+			if ((dwLineCount + j) == uiReadSize)
+			{
+				break;
+			}
+			UCHAR ucCode = m_szBuffer[dwLineCount + j]; // 逐字节读入到ucCode
 			csValue.Format("%02X", ucCode); // 一个字节以2个16进制数格式化输入到csValue中
 			m_FileList.SetItemText(dwIndex, j + 1, csValue); // 再设置到当前行的第j+1列上
 		}
 		m_FileList.SetItemText(dwIndex, 17, "|"); // 16进制显示结束插入分隔符
 		// 开始第二遍读取(显示ASCII码)
-		for (size_t j = 0; j < 16; j++)
+		for (j = 0; j < 16; j++)
 		{
-			UCHAR ucCode = m_szBuffer[i + j]; // 逐字节读入到ucCode
+			// 如果读取到最后一个字节那么停止读取,退出循环
+			if ((dwLineCount + j) == uiReadSize)
+			{
+				break;
+			}
+			UCHAR ucCode = m_szBuffer[dwLineCount + j]; // 逐字节读入到ucCode
 			if (ucCode == 00)
 			{
 				csValue.Format("."); // 如果碰到不可显示字符以.代替
@@ -308,9 +323,11 @@ VOID CHexFileBrowserDlg::InitFileListData(TCHAR* szPath)
 			}
 			m_FileList.SetItemText(dwIndex, j + 18, csValue); // 设置到当前行的第j+18列上(因为ascii区域从第18列开始)
 		}
-		dwLineCount += 0x10;// 每行的地址数都是16个
-		dwIndex++; // 行数++
+		dwLineCount += 0x10;// 每行是16个字节,+16指向下一行起始字节处
+		dwIndex++; // 行的索引++
+		//进度条加载
 		m_ProgressLoad.SetPos(i);
+
 	}
 	// 加载完毕后将进度条清零
 	m_ProgressLoad.SetPos(0);

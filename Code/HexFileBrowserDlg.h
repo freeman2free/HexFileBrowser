@@ -24,7 +24,8 @@ public:
 // 实现
 protected:
 	HICON m_hIcon;
-
+	// 用于更改对话框标题
+	CString m_csCaption;
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
