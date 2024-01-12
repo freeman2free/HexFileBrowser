@@ -5,4 +5,4 @@
 /.vs
 /CppProperties.json
 Code/*.vcxproj.user
-.gitgnore
+/.gitgnore
