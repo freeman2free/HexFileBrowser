@@ -4,5 +4,5 @@
 
 /.vs
 /CppProperties.json
-/Code/*.vcxproj.user
+Code/*.vcxproj.user
 .gitgnore
