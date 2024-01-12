@@ -4,5 +4,5 @@
 
 /.vs
 /CppProperties.json
-/HexFileBrowser.vcxproj.user
-/.gitgnore
+/Code/*.vcxproj.user
+.gitgnore

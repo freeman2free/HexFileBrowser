@@ -16,10 +16,10 @@
   Delete history
 ## 界面 Interface
   主界面 main interface:
-  ![main](./InterFace/HexFileBrowser-main.png)
+  ![main](./pic/HexFileBrowser-main.png)
 
 
 
   Demo:
 
-  ![demo](./InterFace/HexFileBrowser-operation.gif)
+  ![demo](./pic/HexFileBrowser-operation.gif)
